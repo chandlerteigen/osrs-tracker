@@ -11,7 +11,11 @@ import os
 import argparse
 from OSRS_Hiscores import Hiscores
 import json
+from matplotlib import dates as matplotdates
+from matplotlib import pyplot as plt
 from datetime import datetime
+import dateutil.parser
+
 
 # looks up account in the hiscores for its type,
 # and stores the data into a json file
@@ -19,7 +23,57 @@ from datetime import datetime
 
 record_dir = "records/"
 
-def load(name):
+stat_list = ['total', 'attack', 'defense', 'strength', 'hitpoints', 'ranged', 'prayer', 'magic', 'cooking' , 'woodcutting',
+             'fletching', 'fishing', 'firemaking', 'crafting', 'smithing', 'mining', 'herblore', 'agility', 'thieving',
+             'slayer', 'farming', 'runecrafting', 'hunter', 'construction']
+def plot(args):
+    """
+    :method:
+        plot
+
+    :description:
+        Plots the players indicated stat in the indicated mode.
+
+    :param args:
+        args.plot contains the player name the stat and the mode
+
+    :return:
+        No return value.
+    """
+    player = args.plot[0]
+    stat = args.plot[1]
+    mode = args.plot[2]
+
+    if mode == 'x':
+        mode = 'experience'
+    elif mode == 'l':
+        mode = 'level'
+    elif mode == 'r':
+        mode = 'rank'
+    else:
+        print('plot mode '+ mode + ' is not supported.')
+        print('Please use one of the following modes: x, l, r')
+        return
+
+    if stat not in stat_list:
+        print(stat + ' is not a stat in Old School Runescape.')
+        return
+
+    data = load(player)
+    stat_data = list()
+    time_data = list()
+
+    for point in data:
+        stat_data.append(point[stat][mode])
+        time_data.append(dateutil.parser.isoparse(point['date']))
+
+    plt.plot_date(time_data, stat_data, 'r--')
+    plt.ylabel(stat + ' ' + mode)
+    plt.xlabel('time')
+    plt.title(player + '\'s ' + stat + ' ' + mode)
+    plt.show()
+
+def load(player):
     """
     :method:
         load
@@ -27,17 +81,17 @@ def load(name):
         loads all of the player's data into a list of
         dictionaries where each item in the list
         is a tracked record of stats at a certain time.
-    :param name:
+    :param player:
         The name of the player to be loaded.
     :return:
         A list of dictionaries of stats.
     """
     data_list = list()
-    if os.path.isdir(record_dir + name + '/'):
-        print('Loading data for ' + name)
-        data_points = os.listdir(record_dir + name + '/')
+    if os.path.isdir(record_dir + player + '/'):
+        print('Loading data for ' + player)
+        data_points = os.listdir(record_dir + player + '/')
         for point in data_points:
-            with open(record_dir + name + '/' + point) as file:
+            with open(record_dir + player + '/' + point) as file:
                 data = json.load(file)
                 data_list.append(data)
     return data_list
@@ -142,6 +196,11 @@ def main():
                         metavar=('old_name', 'new_name'),
                         help="Renames the specified record (for use when account is renamed).")
 
+    parser.add_argument("-p", "--plot", type=str, nargs=3, metavar=('name', 'stat', 'mode'),
+                        help="""Plots the requested stat of the player in the given mode. Modes: x, l, r.
+                              (exp, level, and rank)""")
+
+
     args = parser.parse_args()
 
 
@@ -151,7 +210,8 @@ def main():
         show()
     elif args.rename != None:
         rename(args)
-
+    elif args.plot != None:
+        plot(args)
 
 if __name__ == "__main__":
     main()
