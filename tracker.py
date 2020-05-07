@@ -19,6 +19,15 @@ from datetime import datetime
 
 record_dir = "records/"
 
+def rename(args):
+    old_dir = args.rename[0]
+    new_dir = args.rename[1]
+    if os.path.isdir(record_dir + args.rename[0] + '/'):
+        print('Renaming ' + old_dir + ' to ' + new_dir)
+        os.rename(record_dir + old_dir, record_dir + new_dir)
+    else:
+        print(record_dir + args.rename[0] + '/' + ' is not currently being tracked')
+
 def show():
     """
     :method:
@@ -102,6 +111,8 @@ def main():
         track(args)
     elif args.show != None:
         show()
+    elif args.rename != None:
+        rename(args)
 
 
 if __name__ == "__main__":
