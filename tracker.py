@@ -19,7 +19,45 @@ from datetime import datetime
 
 record_dir = "records/"
 
+def load(name):
+    """
+    :method:
+        load
+    :description:
+        loads all of the player's data into a list of
+        dictionaries where each item in the list
+        is a tracked record of stats at a certain time.
+    :param name:
+        The name of the player to be loaded.
+    :return:
+        A list of dictionaries of stats.
+    """
+    data_list = list()
+    if os.path.isdir(record_dir + name + '/'):
+        print('Loading data for ' + name)
+        data_points = os.listdir(record_dir + name + '/')
+        for point in data_points:
+            with open(record_dir + name + '/' + point) as file:
+                data = json.load(file)
+                data_list.append(data)
+    return data_list
+
+
 def rename(args):
+    """
+    :method:
+        rename
+
+    :description:
+        renames the account directory in the records_dir.
+        This should be used when an account undergoes a
+        name change before continuing to track the account.
+
+    :param args:
+        args.rename contains the old name and the new name.
+    :return:
+        No return value.
+    """
     old_dir = args.rename[0]
     new_dir = args.rename[1]
     if os.path.isdir(record_dir + args.rename[0] + '/'):
